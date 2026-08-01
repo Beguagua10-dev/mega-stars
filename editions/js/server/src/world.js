@@ -362,6 +362,12 @@ export class World {
         }
         break;
 
+      case PHASE.FINISHED:
+        // Keeps counting into negative values; the server uses it to know how
+        // long the result screen has been up before starting a new match.
+        match.phaseTimer -= dt;
+        break;
+
       default:
         break;
     }

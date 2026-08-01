@@ -37,6 +37,7 @@ export class Renderer {
     if (self) {
       this.camera.x += (self.x - this.camera.x) * 0.18;
       this.camera.y += (self.y - this.camera.y) * 0.18;
+      this.clampCamera(arena);
     }
 
     ctx.fillStyle = '#0d1020';
@@ -47,6 +48,19 @@ export class Renderer {
     for (const proj of state.proj) this.drawProjectile(proj);
     for (const player of state.players) this.drawPlayer(player, roster, localId);
     if (self) this.drawHud(self);
+  }
+
+  /// Keeps the view inside the arena so the black background never shows up
+  /// next to the walls (unless the arena is smaller than the window).
+  clampCamera(arena) {
+    const halfW = this.viewWidth / (2 * this.tilePixels);
+    const halfH = this.viewHeight / (2 * this.tilePixels);
+    this.camera.x = halfW * 2 >= arena.width
+      ? arena.width / 2
+      : Math.min(Math.max(this.camera.x, halfW), arena.width - halfW);
+    this.camera.y = halfH * 2 >= arena.height
+      ? arena.height / 2
+      : Math.min(Math.max(this.camera.y, halfH), arena.height - halfH);
   }
 
   drawArena(arena) {

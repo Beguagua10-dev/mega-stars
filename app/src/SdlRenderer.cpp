@@ -135,6 +135,7 @@ public:
         }
         viewWidth_ = width;
         viewHeight_ = height;
+        clampCamera(world.arena());
 
         setColor(renderer_, kBackground);
         SDL_RenderClear(renderer_);
@@ -164,6 +165,17 @@ public:
     }
 
 private:
+    /// Keeps the view inside the arena so the background never shows next to
+    /// the outer walls.
+    void clampCamera(const Arena& arena) {
+        const float halfW = viewWidth_ * 0.5f / profile_.tilePixels;
+        const float halfH = viewHeight_ * 0.5f / profile_.tilePixels;
+        const float w = static_cast<float>(arena.width());
+        const float h = static_cast<float>(arena.height());
+        camera_.x = halfW * 2.0f >= w ? w * 0.5f : clampf(camera_.x, halfW, w - halfW);
+        camera_.y = halfH * 2.0f >= h ? h * 0.5f : clampf(camera_.y, halfH, h - halfH);
+    }
+
     SDL_FPoint worldToScreen(const Vec2& p) const {
         const float scale = profile_.tilePixels;
         return SDL_FPoint{(p.x - camera_.x) * scale + viewWidth_ * 0.5f,
