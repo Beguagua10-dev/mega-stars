@@ -99,6 +99,11 @@ struct Player {
     bool bot = false;
     bool connected = true;
 
+    // Bot steering memory, used to escape walls (see BotBrain.cpp).
+    Vec2 botLastPosition;
+    float botStrafeUntil = 0.0f;
+    float botStrafeSide = 1.0f;
+
     bool alive() const { return health > 0 && respawnTimer <= 0.0f; }
 };
 

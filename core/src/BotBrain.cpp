@@ -1,6 +1,7 @@
 #include "mega/BotBrain.h"
 
 #include <limits>
+#include <vector>
 
 namespace mega {
 namespace {
@@ -78,11 +79,41 @@ PlayerInput decideBotInput(const World& world, const Player& self) {
     return input;
 }
 
+namespace {
+
+/// Bots have no pathfinding, so they wedge themselves into walls. When one
+/// stops making progress it strafes sideways for a moment until it is free.
+PlayerInput unstick(const World& world, Player& self, PlayerInput input) {
+    const float progress = distance(self.position, self.botLastPosition);
+    self.botLastPosition = self.position;
+
+    const float now = world.match().elapsed;
+    const bool wantsToMove = input.move.lengthSquared() > 0.0f;
+    if (wantsToMove && progress < 0.01f && now > self.botStrafeUntil) {
+        self.botStrafeUntil = now + 0.6f;
+        self.botStrafeSide = -self.botStrafeSide;
+    }
+    if (now < self.botStrafeUntil) {
+        input.move = Vec2{-input.move.y * self.botStrafeSide, input.move.x * self.botStrafeSide};
+    }
+    return input;
+}
+
+}  // namespace
+
 void driveBots(World& world) {
+    std::vector<EntityId> bots;
     for (const Player& p : world.players()) {
         if (p.bot) {
-            world.setInput(p.id, decideBotInput(world, p));
+            bots.push_back(p.id);
         }
+    }
+    for (const EntityId id : bots) {
+        Player* bot = world.findPlayerMutable(id);
+        if (bot == nullptr) {
+            continue;
+        }
+        world.setInput(id, unstick(world, *bot, decideBotInput(world, *bot)));
     }
 }
 

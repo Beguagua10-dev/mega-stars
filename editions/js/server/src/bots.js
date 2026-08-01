@@ -59,8 +59,29 @@ export function decideBotInput(world, self) {
   return input;
 }
 
+/// Bots have no pathfinding, so they wedge themselves into walls. When one
+/// stops making progress it strafes sideways for a moment until it is free.
+function unstick(world, player, input) {
+  const memory = player.botMemory || (player.botMemory = { x: player.x, y: player.y, strafeUntil: 0, side: 1 });
+  const progress = Math.hypot(player.x - memory.x, player.y - memory.y);
+  memory.x = player.x;
+  memory.y = player.y;
+
+  const now = world.match.elapsed;
+  const wantsToMove = input.move.x !== 0 || input.move.y !== 0;
+  if (wantsToMove && progress < 0.01 && now > memory.strafeUntil) {
+    memory.strafeUntil = now + 0.6;
+    memory.side = -memory.side;
+  }
+  if (now < memory.strafeUntil) {
+    input.move = { x: -input.move.y * memory.side, y: input.move.x * memory.side };
+  }
+  return input;
+}
+
 export function driveBots(world) {
   for (const player of world.players) {
-    if (player.bot) world.setInput(player.id, decideBotInput(world, player));
+    if (!player.bot) continue;
+    world.setInput(player.id, unstick(world, player, decideBotInput(world, player)));
   }
 }
