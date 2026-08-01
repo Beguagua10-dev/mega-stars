@@ -332,16 +332,32 @@ private:
         SDL_RenderFillRect(renderer_, &superFill);
     }
 
+    /// Touch controls scale with the screen so they stay usable on small
+    /// phones without covering half of a tablet.
+    float touchUnit() const {
+        const float shortest = static_cast<float>(std::min(viewWidth_, viewHeight_));
+        return clampf(shortest * 0.16f, 40.0f, 110.0f);
+    }
+
+    Vec2 restingJoystick() const {
+        const float unit = touchUnit();
+        return Vec2{unit * 1.3f, viewHeight_ - unit * 1.3f};
+    }
+
     void drawTouchControls() {
+        const float unit = touchUnit();
+        if (touchMove_.lengthSquared() == 0.0f) {
+            joystickOrigin_ = restingJoystick();
+        }
         setColor(renderer_, Color{255, 255, 255, 60});
-        fillCircle(renderer_, joystickOrigin_.x, joystickOrigin_.y, 70.0f);
+        fillCircle(renderer_, joystickOrigin_.x, joystickOrigin_.y, unit);
         setColor(renderer_, Color{255, 255, 255, 120});
-        fillCircle(renderer_, joystickOrigin_.x + touchMove_.x * 40.0f,
-                   joystickOrigin_.y + touchMove_.y * 40.0f, 30.0f);
+        fillCircle(renderer_, joystickOrigin_.x + touchMove_.x * unit * 0.55f,
+                   joystickOrigin_.y + touchMove_.y * unit * 0.55f, unit * 0.42f);
 
         setColor(renderer_, Color{240, 180, 80, 110});
-        fillCircle(renderer_, static_cast<float>(viewWidth_) - 120.0f,
-                   static_cast<float>(viewHeight_) - 120.0f, 70.0f);
+        fillCircle(renderer_, static_cast<float>(viewWidth_) - unit * 1.3f,
+                   static_cast<float>(viewHeight_) - unit * 1.3f, unit);
     }
 
     void handleTouch(const SDL_Event& event) {
@@ -359,6 +375,7 @@ private:
         if (event.type == SDL_FINGERUP) {
             if (leftHalf) {
                 touchMove_ = Vec2{};
+                joystickOrigin_ = restingJoystick();
             } else {
                 touchShoot_ = false;
                 touchAim_ = Vec2{};
@@ -372,7 +389,7 @@ private:
             const Vec2 delta{x - joystickOrigin_.x, y - joystickOrigin_.y};
             touchMove_ = delta.length() > 8.0f ? delta.normalized() : Vec2{};
         } else {
-            const Vec2 origin{viewWidth_ - 120.0f, viewHeight_ - 120.0f};
+            const Vec2 origin{viewWidth_ - touchUnit() * 1.3f, viewHeight_ - touchUnit() * 1.3f};
             const Vec2 delta{x - origin.x, y - origin.y};
             touchAim_ = delta.length() > 8.0f ? delta.normalized() : touchAim_;
             touchShoot_ = true;
@@ -387,7 +404,7 @@ private:
     int viewHeight_ = 720;
     Vec2 touchMove_;
     Vec2 touchAim_;
-    Vec2 joystickOrigin_{140.0f, 580.0f};
+    Vec2 joystickOrigin_;
     bool touchShoot_ = false;
     bool touchSuper_ = false;
 };

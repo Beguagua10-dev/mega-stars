@@ -65,6 +65,21 @@ jobs:
           name: mega-stars-windows-x64
           path: build/bin/Release/*
 
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: ./gradlew assembleMobileRelease assemblePocketRelease
+        working-directory: android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mega-stars-android
+          path: android/app/build/outputs/apk/*/release/*.apk
+
   js:
     runs-on: ubuntu-latest
     defaults:

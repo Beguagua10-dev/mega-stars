@@ -70,7 +70,14 @@ add_library(mega_app STATIC
 target_include_directories(mega_app PUBLIC app/include)
 target_link_libraries(mega_app PUBLIC mega_core mega_net)
 
-find_package(SDL2 QUIET)
+if(ANDROID)
+    # On Android SDL2 is added as a subproject by android/app/jni/CMakeLists.txt.
+    target_compile_definitions(mega_app PUBLIC MEGA_WITH_SDL)
+    target_link_libraries(mega_app PUBLIC SDL2 log android)
+    set(SDL2_FOUND FALSE)
+else()
+    find_package(SDL2 QUIET)
+endif()
 if(SDL2_FOUND)
     target_compile_definitions(mega_app PUBLIC MEGA_WITH_SDL)
     # SDL2main is deliberately not linked: the editions are console programs
@@ -83,11 +90,21 @@ if(SDL2_FOUND)
         target_include_directories(mega_app PUBLIC ${SDL2_INCLUDE_DIRS})
         target_link_libraries(mega_app PUBLIC ${SDL2_LIBRARIES})
     endif()
-else()
+elseif(NOT ANDROID)
     message(STATUS "SDL2 not found: only the ASCII frontend will be available")
 endif()
 
 # ------------------------------------------------------------- editions ------
+if(ANDROID)
+    # The Android package loads a shared library called "main".
+    add_library(main SHARED editions/android/src/main_android.cpp)
+    target_link_libraries(main PRIVATE mega_app)
+    if(MEGA_ANDROID_POCKET)
+        target_compile_definitions(main PRIVATE MEGA_ANDROID_EDITION_POCKET=1)
+    endif()
+    return()
+endif()
+
 if(MEGA_BUILD_PC)
     add_executable(mega-stars editions/pc/src/main.cpp)
     target_link_libraries(mega-stars PRIVATE mega_app)
