@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <title>Mega Stars - JS Edition</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+
+    <div id="hud" class="hidden">
+      <div id="scoreboard">
+        <div class="score blue"><span id="score-blue">0</span></div>
+        <div id="timer">--</div>
+        <div class="score red"><span id="score-red">0</span></div>
+      </div>
+      <div id="feed"></div>
+      <div id="touch" class="hidden">
+        <div id="stick" class="pad"><div class="knob"></div></div>
+        <div id="fire" class="pad">ATIRAR</div>
+        <div id="super" class="pad">SUPER</div>
+      </div>
+    </div>
+
+    <div id="menu">
+      <header>
+        <h1>MEGA<span>STARS</span></h1>
+        <p class="tagline">JS Edition &middot; arena 3x3 &middot; Coleta de Cristais</p>
+      </header>
+
+      <label class="field">
+        <span>Seu nome</span>
+        <input id="name" maxlength="16" placeholder="Jogador" />
+      </label>
+
+      <label class="field">
+        <span>Servidor</span>
+        <input id="server" placeholder="deixe vazio para usar este servidor" />
+      </label>
+
+      <h2>Escolha seu personagem</h2>
+      <div id="roster"></div>
+
+      <button id="play">JOGAR</button>
+      <p id="status"></p>
+      <footer>
+        Personagens, arte e nomes são originais de Mega Stars.
+      </footer>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

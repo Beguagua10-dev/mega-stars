@@ -1,0 +1,22 @@
+{
+  "name": "mega-stars-js-edition",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mega Stars JS Edition: browser client and match server",
+  "type": "module",
+  "main": "server/src/server.js",
+  "scripts": {
+    "start": "node server/src/server.js",
+    "test": "node --test server/test",
+    "lint": "eslint ."
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.14.0"
+  }
+}
