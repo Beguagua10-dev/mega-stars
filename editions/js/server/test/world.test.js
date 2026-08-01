@@ -53,9 +53,10 @@ test('picking up a gem scores for the team', () => {
   const world = new World();
   const player = world.addPlayer('A', 'faisca', 0);
   for (let i = 0; i < 300 && world.match.teamGems[0] === 0; i += 1) {
-    const center = world.arena.center();
-    player.x = center.x;
-    player.y = center.y;
+    // Gems appear at random spots around the middle: walk onto the first one.
+    const target = world.gems[0] || world.arena.center();
+    player.x = target.x;
+    player.y = target.y;
     world.step(1 / 30);
   }
   assert.ok(world.match.teamGems[0] > 0);
