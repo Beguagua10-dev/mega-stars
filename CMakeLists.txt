@@ -77,6 +77,8 @@ if(SDL2_FOUND)
     # with a plain main(), so they also work from a terminal/PowerShell.
     if(TARGET SDL2::SDL2)
         target_link_libraries(mega_app PUBLIC SDL2::SDL2)
+    elseif(TARGET SDL2::SDL2-static)
+        target_link_libraries(mega_app PUBLIC SDL2::SDL2-static)
     else()
         target_include_directories(mega_app PUBLIC ${SDL2_INCLUDE_DIRS})
         target_link_libraries(mega_app PUBLIC ${SDL2_LIBRARIES})

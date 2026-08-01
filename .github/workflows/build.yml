@@ -21,16 +21,28 @@ jobs:
           path: build/bin/mega-stars*
 
   macos:
-    # macos-13 is the last Intel runner, so the binary also runs on older Macs.
-    runs-on: macos-13
+    # Apple Silicon runner cross-building for Intel, so the binary also runs on
+    # older Macs (iMac 2011 / High Sierra). Homebrew only ships arm64 bottles,
+    # so SDL2 is built from source for x86_64.
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - run: brew install sdl2
+      - name: Build SDL2 for x86_64
+        run: |
+          curl -L -o SDL2.tar.gz https://github.com/libsdl-org/SDL/releases/download/release-2.30.9/SDL2-2.30.9.tar.gz
+          tar xzf SDL2.tar.gz
+          cmake -S SDL2-2.30.9 -B sdl-build -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13 \
+            -DCMAKE_INSTALL_PREFIX="$PWD/sdl-prefix" \
+            -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST=OFF
+          cmake --build sdl-build -j3 --target install
       - run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13 \
             -DCMAKE_OSX_ARCHITECTURES=x86_64 \
-            -DMEGA_BUILD_MOBILE=ON -DMEGA_BUILD_POCKET=ON
+            -DSDL2_DIR="$PWD/sdl-prefix/lib/cmake/SDL2" \
+            -DMEGA_BUILD_MOBILE=ON -DMEGA_BUILD_POCKET=ON -DMEGA_BUILD_TESTS=OFF
       - run: cmake --build build -j3
       - uses: actions/upload-artifact@v4
         with:
