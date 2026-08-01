@@ -1,0 +1,68 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DMEGA_BUILD_MOBILE=ON -DMEGA_BUILD_POCKET=ON
+      - run: cmake --build build -j
+      - run: ctest --test-dir build --output-on-failure
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mega-stars-linux-x64
+          path: build/bin/mega-stars*
+
+  macos:
+    # macos-13 is the last Intel runner, so the binary also runs on older Macs.
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install sdl2
+      - run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13 \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DMEGA_BUILD_MOBILE=ON -DMEGA_BUILD_POCKET=ON
+      - run: cmake --build build -j3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mega-stars-macos-x64
+          path: build/bin/mega-stars*
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch SDL2
+        shell: pwsh
+        run: |
+          curl -L -o SDL2.zip https://github.com/libsdl-org/SDL/releases/download/release-2.30.9/SDL2-devel-2.30.9-VC.zip
+          Expand-Archive SDL2.zip -DestinationPath sdl2
+      - run: cmake -S . -B build -A x64 -DSDL2_DIR="${{ github.workspace }}/sdl2/SDL2-2.30.9/cmake" -DMEGA_BUILD_MOBILE=ON -DMEGA_BUILD_POCKET=ON
+      - run: cmake --build build --config Release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mega-stars-windows-x64
+          path: build/bin/Release/*
+
+  js:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editions/js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install
+      - run: npx eslint .
+      - run: npm test
